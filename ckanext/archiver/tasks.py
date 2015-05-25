@@ -101,6 +101,8 @@ def download(context, resource, url_timeout=30,
     })
 
     headers = json.loads(link_checker(link_context, link_data))
+    
+    log.info('Got headers from link-checker for %s: %r' %(url, headers))
 
     resource_format = resource['format'].lower()
     ct = _clean_content_type( headers.get('content-type', '').lower() )
@@ -154,8 +156,12 @@ def download(context, resource, url_timeout=30,
 
     if not res.ok:
         raise DownloadError('Download failed with status code: %s' % res.status_code)
+    else:
+        log.info('Finished requests.get(%s)' %(url))
 
     length, hash, saved_file = _save_resource(resource, res, max_content_length)
+
+    log.info('Saved downloaded file at %s' %(saved_file)) 
 
     # check if resource size changed
     if unicode(length) != resource.get('size'):
@@ -257,6 +263,8 @@ def _update(context, data):
     if not os.path.exists(settings.ARCHIVE_DIR):
         log.info("Creating archive directory: %s" % settings.ARCHIVE_DIR)
         os.mkdir(settings.ARCHIVE_DIR)
+    else:
+        log.info("Using archive directory: %s" % (settings.ARCHIVE_DIR))
 
     if not data:
         raise ArchiverError('Resource not found')
@@ -279,7 +287,7 @@ def _update(context, data):
         log.info('Download not carried out: %r, %r', e, e.args)
         return
     except Exception, downloaderr:
-        log.info('Download failure: %r, %r', downloaderr, downloaderr.args)
+        log.info('Unexpected error while downloading: %r, %r', downloaderr, downloaderr.args)
         return
 
     log.info("Attempting to archive resource: %s" % data['url'])
@@ -458,9 +466,11 @@ def _update_resource(context, resource, log):
             content = res.content
         except:
             content = '<could not read request content to discover error>'
-        log.error('ckan failed to update resource, status_code (%s), error %s. Maybe the API key or site URL are wrong?.\ncontext: %r\nresource: %r\nres: %r\nres.error: %r\npost_data: %r\napi_url: %r'
-                        % (res.status_code, content, context, resource, res, res.error, post_data, api_url))
-        raise CkanError('ckan failed to update resource, status_code (%s), error %s'  % (res.status_code, content))
+        log.error(
+           'Failed to update resource, status_code (%s), error %s.'
+           'context=%r resource=%r response=%r reason=%r post_data=%r api_url=%r' % (
+              res.status_code, content, context, resource, res, res.reason, post_data, api_url))
+        raise CkanError('Failed to update resource, HTTP %s: %r'  % (res.status_code, res))
 
 def update_task_status(context, data, log):
     """
@@ -484,7 +494,9 @@ def update_task_status(context, data, log):
             content = res.content
         except:
             content = '<could not read request content to discover error>'
-        log.error('ckan failed to update task_status, status_code (%s), error %s. Maybe the API key or site URL are wrong?.\ncontext: %r\ndata: %r\nres: %r\nres.error: %r\npost_data: %r\napi_url: %r'
-                        % (res.status_code, content, context, data, res, res.error, post_data, api_url))
-        raise CkanError('ckan failed to update task_status, status_code (%s), error %s'  % (res.status_code, content))
+        log.error(
+           'Failed to update task status, status_code (%s), error %s.'
+           'context=%r resource=%r response=%r reason=%r post_data=%r api_url=%r' % (
+              res.status_code, content, context, resource, res, res.reason, post_data, api_url))
+        raise CkanError('Failed to update resource, HTTP %s: %r'  % (res.status_code, res))
 

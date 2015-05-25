@@ -102,5 +102,8 @@ class ArchiverPlugin(SingletonPlugin):
         }
 
         get_action('task_status_update')(archiver_task_context, archiver_task_status)
-        celery.send_task("archiver.update", args=[context, data], task_id=task_id)
-        log.debug('Archival of resource put into celery queue: %s url=%r user=%s site_user=%s site_url=%s', resource.id, res_dict.get('url'), username, site_user['name'], self.site_url)
+        celery.send_task("archiver.update", args=[context, data], countdown=15, task_id=task_id)
+
+        log.info('Sent task: archiver.update: %s url=%r user=%s site_user=%s site_url=%s',
+            resource.id, res_dict.get('url'), username, site_user['name'], self.site_url)
+
