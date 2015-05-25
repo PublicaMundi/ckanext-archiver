@@ -13,8 +13,8 @@ log = logging.getLogger(__name__)
 
 class ArchiverPlugin(SingletonPlugin):
     """
-    Registers to be notified whenever CKAN resources are created or their URLs change,
-    and will create a new ckanext.archiver celery task to archive the resource.
+    Register to be notified whenever CKAN resources are created or and will create a 
+    new ckanext.archiver celery task to archive the resource.
     """
     implements(IDomainObjectModification, inherit=True)
     implements(IResourceUrlChange)
@@ -36,22 +36,17 @@ class ArchiverPlugin(SingletonPlugin):
         if not isinstance(entity, model.Resource):
             return
 
-        log.debug('Notified of resource event: %s', entity.id)
+        logger.debug('Notified: %s on resource %s' %(operation, entity.id))
 
         if operation:
             # Only interested in 'new resource' events, since that's what you
             # get when you change the URL field. Note that once this occurs, in tasks.py
             # it will update the resource with the new cache_url, that will cause a 
             # 'change resource' notification, which we need to ignore here.
-            if operation == model.DomainObjectOperation.new:
+            if operation == 'new':
                 self._create_archiver_task(entity)
             else:
-                log.debug('Ignoring resource event because operation is: %s',
-                          operation)
-        else:
-            # if operation is None, resource URL has been changed, as the
-            # notify function in IResourceUrlChange only takes 1 parameter
-            self._create_archiver_task(entity)
+                log.debug('Ignoring event on operation %s', operation)
 
     def _create_archiver_task(self, resource):
         from ckan.lib.base import c
