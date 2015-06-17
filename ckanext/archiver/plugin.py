@@ -36,7 +36,7 @@ class ArchiverPlugin(SingletonPlugin):
         if not isinstance(entity, model.Resource):
             return
 
-        logger.debug('Notified: %s on resource %s' %(operation, entity.id))
+        log.debug('Notified: %s on resource %s' %(operation, entity.id))
 
         if operation:
             # Only interested in 'new resource' events, since that's what you
