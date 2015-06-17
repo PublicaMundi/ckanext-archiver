@@ -496,7 +496,7 @@ def update_task_status(context, data, log):
             content = '<could not read request content to discover error>'
         log.error(
            'Failed to update task status, status_code (%s), error %s.'
-           'context=%r resource=%r response=%r reason=%r post_data=%r api_url=%r' % (
-              res.status_code, content, context, resource, res, res.reason, post_data, api_url))
-        raise CkanError('Failed to update resource, HTTP %s: %r'  % (res.status_code, res))
+           'context=%r data=%r response=%r reason=%r post_data=%r api_url=%r' % (
+              res.status_code, content, context, data, res, res.reason, post_data, api_url))
+        raise CkanError('Failed to update task status, HTTP %s: %r'  % (res.status_code, res))
 
