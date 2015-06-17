@@ -205,7 +205,10 @@ def download(context, resource, url_timeout=30,
         raise DownloadError("Content-length after streaming was zero")
 
     # update the resource metadata in CKAN if the resource has changed
-    if resource.get('hash') != hash:
+    prev_hash = resource.get('hash')
+    if prev_hash != hash:
+        if prev_hash:
+            log.warning('The sha1 hash for resource %(id)s has changed!', resource)
         resource['hash'] = hash
         try:
             # This may fail for archiver.update() as a result of the resource
